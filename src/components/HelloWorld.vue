@@ -28,6 +28,9 @@
       <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
     </ul>
   </div>
+  <button @click="recStart" :disabled="state!=0">Start</button>
+  <button @click="recStop" :disabled="state!=1">Stop</button>
+  <div>{{error}}</div>
 </template>
 
 <script>
@@ -35,6 +38,49 @@ export default {
   name: 'HelloWorld',
   props: {
     msg: String
+  },
+  data () {
+    return {
+      stream: undefined,
+      chunks: [],
+      recorder: undefined,
+      state: 0
+    }
+  },
+  methods: {
+    async recStart() {
+      this.error = undefined
+      this.stream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: false
+      })
+
+      this.state = 1
+
+      this.recorder = new MediaRecorder(this.stream)
+      this.recorder.ondataavailable = (event) => {
+        this.chunks.push(event.data)
+      }
+      this.recorder.onstop = () => {
+        const blob = new Blob(this.chunks, {type: 'video/mp4'})
+        const url = URL.createObjectURL(blob);
+
+        const anchor = document.createElement('a')
+        anchor.download = 'video.mp4'
+        anchor.href = url
+        anchor.click()
+
+        URL.revokeObjectURL(url)
+      }
+      this.recorder.start()
+    },
+    recStop() {
+      console.log('atop')
+      this.recorder.stop()
+      this.state = 0
+      this.stream = undefined
+      this.recorder = undefined
+    }
   }
 }
 </script>
