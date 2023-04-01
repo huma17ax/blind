@@ -64,6 +64,8 @@ export default {
       this.error = undefined
       this.stream = await navigator.mediaDevices.getUserMedia({
         video: {
+          width: { ideal: 4096 },
+          height: { ideal: 2160 },
           facingMode: { exact: "environment" }
         },
         audio: false
