@@ -28,9 +28,13 @@
       <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
     </ul>
   </div>
+  <select v-model="selected_cam">
+    <option v-for="cam in cameras" :key="cam.deviceId" :value="cam.deviceId">{{cam.label}}</option>
+  </select>
   <button @click="recStart" :disabled="state!=0">Start</button>
   <button @click="recStop" :disabled="state!=1">Stop</button>
   <div>{{error}}</div>
+  <div>{{cameras}}</div>
 </template>
 
 <script>
@@ -44,14 +48,24 @@ export default {
       stream: undefined,
       chunks: [],
       recorder: undefined,
-      state: 0
+      state: 0,
+      cameras: [],
+      selected_cam: undefined
     }
+  },
+  mounted () {
+    navigator.mediaDevices.enumerateDevices()
+    .then((dev) => {
+      this.cameras = dev
+    })
   },
   methods: {
     async recStart() {
       this.error = undefined
       this.stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
+        video: {
+          deviceId: this.selected_cam
+        },
         audio: false
       })
 
@@ -75,8 +89,10 @@ export default {
       this.recorder.start()
     },
     recStop() {
-      console.log('atop')
       this.recorder.stop()
+      this.stream.getVideoTracks().forEach(track => {
+        track.stop()
+      })
       this.state = 0
       this.stream = undefined
       this.recorder = undefined
