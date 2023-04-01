@@ -64,7 +64,7 @@ export default {
       this.error = undefined
       this.stream = await navigator.mediaDevices.getUserMedia({
         video: {
-          deviceId: this.selected_cam
+          facingMode: { exact: "environment" }
         },
         audio: false
       })
